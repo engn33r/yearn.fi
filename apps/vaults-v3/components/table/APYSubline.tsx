@@ -62,7 +62,7 @@ export const APYSubline: FC<TAPYSublineProps> = ({
                 <p className={'-mt-1 mb-2 w-full text-left text-sm text-neutral-700 break-words whitespace-normal'}>
                   {'Earn boosted yield on Spectra if you '}
                   <a
-                    href={'https://app.spectra.finance/pools'}
+                    href={'https://app.spectra.finance/pools?networks=katana'}
                     target={'_blank'}
                     rel={'noopener noreferrer'}
                     className={
