@@ -28,6 +28,11 @@ function resolveClientPort(env: Record<string, string>) {
 
 function buildProxy(apiProxyTarget: string) {
   return {
+    '/sitemap.xml': {
+      target: apiProxyTarget,
+      changeOrigin: true,
+      rewrite: () => '/api/sitemap'
+    },
     '/api': {
       target: apiProxyTarget,
       changeOrigin: true

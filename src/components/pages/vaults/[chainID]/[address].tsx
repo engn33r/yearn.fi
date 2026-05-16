@@ -142,6 +142,35 @@ const splitFirstSentence = (message: string): { title: string; body?: string } =
   return body ? { title, body } : { title }
 }
 
+const buildVaultStructuredData = (currentVault: TKongVaultView): Record<string, unknown> => {
+  const annualPercentageRate = Number.isFinite(currentVault.apr.netAPR)
+    ? {
+        '@type': 'QuantitativeValue',
+        value: Number((currentVault.apr.netAPR * 100).toFixed(2)),
+        unitText: 'PERCENT'
+      }
+    : undefined
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FinancialProduct',
+    name: currentVault.name,
+    description: currentVault.description || `Deposit ${currentVault.token.symbol} to earn automated yield on Yearn.`,
+    url: `https://yearn.fi/vaults/${currentVault.chainID}/${currentVault.address}`,
+    ...(annualPercentageRate ? { annualPercentageRate } : {}),
+    provider: {
+      '@type': 'Organization',
+      name: 'Yearn',
+      url: 'https://yearn.fi'
+    },
+    offers: {
+      '@type': 'Offer',
+      category: 'Yield Vault',
+      description: `Automated yield vault for ${currentVault.token.symbol} on chain ${currentVault.chainID}`
+    }
+  }
+}
+
 const isSnapshotLikelyV3Vault = (snapshot: TKongVaultSnapshot): boolean => {
   const apiVersion = snapshot.apiVersion ?? ''
   if (apiVersion.startsWith('3') || apiVersion.startsWith('~3')) {
@@ -1226,30 +1255,7 @@ function Index(): ReactElement | null {
 
   return (
     <>
-      {currentVault && (
-        <JsonLd
-          schema={{
-            '@context': 'https://schema.org',
-            '@type': 'FinancialProduct',
-            name: currentVault.name,
-            description:
-              currentVault.description ||
-              `Deposit ${currentVault.token.symbol} to earn automated yield on Yearn Finance.`,
-            url: `https://yearn.fi/vaults/${currentVault.chainID}/${currentVault.address}`,
-            annualPercentageRate: `${(currentVault.apr.netAPR * 100).toFixed(2)}%`,
-            provider: {
-              '@type': 'Organization',
-              name: 'Yearn Finance',
-              url: 'https://yearn.fi'
-            },
-            offers: {
-              '@type': 'Offer',
-              category: 'Yield Vault',
-              description: `Automated yield vault for ${currentVault.token.symbol} on chain ${currentVault.chainID}`
-            }
-          }}
-        />
-      )}
+      {currentVault && <JsonLd schema={buildVaultStructuredData(currentVault)} />}
       <div
         className={
           'min-h-[calc(100vh-var(--header-height))] w-full bg-app pb-[calc(7rem+env(safe-area-inset-bottom,0px))] sm:pb-8'
